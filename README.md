@@ -90,10 +90,11 @@ When you finish changing parametr, run roslaunch file.
 $ roslaunch livox_ros_driver livox_lidar_trigger.launch
 ```
 
-### STM32
+### STM32  
 1. Timer2: make 50Hz PWM.  
 2. Timer3: make 10Hz PWM & UART Transmit fake GPRMC data.  
 
+Source Code in `cocel_handheld_trigger`
 
 ## Reference
 [1. LIV_handhold](https://github.com/sheng00125/LIV_handhold)  
