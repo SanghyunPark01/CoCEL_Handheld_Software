@@ -85,7 +85,7 @@ Before run, you have to change some path.
 - In `livox_ros_driver/launch/livox_lidar_trigger.launch`, you have to change parameter `path_for_time_stamp`.(Replace with your ros workspace path)  
 - In `livox_ros_driver/config/livox_lidar_config.json`, you have to change parameter `device_name`.(Replace with your UART-USB serial port name)  
 
-When you finish changing parametr, run roslaunch file.  
+When you finish changing parameter, run roslaunch file.  
 ```bash
 $ roslaunch livox_ros_driver livox_lidar_trigger.launch
 ```
