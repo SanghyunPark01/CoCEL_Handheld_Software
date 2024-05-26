@@ -1,5 +1,8 @@
 # CoCEL_Handheld_Software
 Handheld device software pack. CoCEL @POSTECH  
+## Features  
+Synchronize LiDAR & Camera Frame.  
+
 ## Architecture
 <p align="center"><img src="./img/Architecture.png" width="800px"></p>  
 
