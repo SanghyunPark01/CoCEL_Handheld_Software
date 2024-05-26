@@ -6,7 +6,7 @@ Synchronize LiDAR & Camera Frame.
 ## Architecture
 <p align="center"><img src="./img/Architecture.png" width="800px"></p>  
 
-## Result  
+## Synchronization Result  
 **Before**  
 <p align="center"><img src="./img/unsync.png" width="max"></p>
 
