@@ -470,6 +470,9 @@ uint32_t Lddc::PublishCustomPointcloud(LidarDataQueue *queue,
       livox_msg.header.stamp =
           ros::Time(timestamp / 1000000000.0); // + time_offset_);
 
+        // Edit
+      livox_msg.header.stamp = ros::Time::now();
+
       // livox_msg.header.stamp = ros::Time(timestamp / 1000000000.0);
       timestamp_last_lidar_ = timestamp;
     } else {
