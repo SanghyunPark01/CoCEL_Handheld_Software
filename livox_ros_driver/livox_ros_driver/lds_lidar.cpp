@@ -84,7 +84,7 @@ int LdsLidar::InitLdsLidar(std::vector<std::string> &broadcast_code_strs,
   for (auto input_str : broadcast_code_strs) {
     AddBroadcastCodeToWhitelist(input_str.c_str());
   }
-// 这解析 config文件，并且设置一下串口
+
   ParseConfigFile(user_config_path);
 
   if (whitelist_count_) {
@@ -108,7 +108,7 @@ int LdsLidar::InitLdsLidar(std::vector<std::string> &broadcast_code_strs,
       printf("Timesync init fail\n");
       return -1;
     }
-// 在这里设置回调函数
+
     if (timesync_->SetReceiveSyncTimeCb(ReceiveSyncTimeCallback, this)) {
       printf("Set Timesync callback fail\n");
       return -1;
@@ -534,7 +534,7 @@ void LdsLidar::SetRmcSyncTimeCb(livox_status status, uint8_t handle,
   printf("Set lidar[%d] sync time status[%d] response[%d]\n", handle, status,
          response);
 }
-// 这是GRMS 的回调函数
+
 void LdsLidar::ReceiveSyncTimeCallback(const char *rmc, uint32_t rmc_length,
                                        void *client_data) {
   LdsLidar *lds_lidar = static_cast<LdsLidar *>(client_data);
@@ -544,10 +544,8 @@ void LdsLidar::ReceiveSyncTimeCallback(const char *rmc, uint32_t rmc_length,
     p_lidar = &(lds_lidar->lidars_[handle]);
     if (p_lidar->connect_state == kConnectStateSampling &&
         p_lidar->info.state == kLidarStateNormal) {
-      // LidarSetRmcSyncTime是SDK的函数
       livox_status status = LidarSetRmcSyncTime(handle, rmc, rmc_length,
                                                 SetRmcSyncTimeCb, lds_lidar);
-      // status=-1
       if (status != kStatusSuccess) {
         printf("Set GPRMC synchronization time error code: %d.\n", status);
       }
@@ -717,7 +715,7 @@ int LdsLidar::ParseConfigFile(const char *pathname) {
         }
       }
     }
-// 在这里设置
+
     if (ParseTimesyncConfig(doc)) {
       printf("Parse timesync config fail\n");
       enable_timesync_ = false;

@@ -99,7 +99,7 @@ int32_t GpsProtocol::CheckPacket(const uint8_t *buf) {
   if (checksum == raw_checksum) {
     return 0;
   } else {
-    return 0;
+    return -1;
   }
 }
 

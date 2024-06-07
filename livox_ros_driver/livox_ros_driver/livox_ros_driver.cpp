@@ -45,17 +45,6 @@ inline void SignalHandler(int signum) {
   exit(signum);
 }
 
-struct time_stamp {
-  int64_t high;
-  int64_t low;
-};
-struct time_stamp *pointt;
-#define ERR_EXIT(m)                                                            \
-  do {                                                                         \
-    perror(m);                                                                 \
-    exit(EXIT_FAILURE);                                                        \
-  } while (0)
-
 int main(int argc, char **argv) {
   /** Ros related */
   if (ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME,
@@ -85,7 +74,7 @@ int main(int argc, char **argv) {
   std::string frame_id = "livox_frame";
   bool lidar_bag = true;
   bool imu_bag   = false;
-  std::string path_for_time_stamp = "/home/aa/test4";
+
   livox_node.getParam("xfer_format", xfer_format);
   livox_node.getParam("multi_topic", multi_topic);
   livox_node.getParam("data_src", data_src);
@@ -94,21 +83,6 @@ int main(int argc, char **argv) {
   livox_node.getParam("frame_id", frame_id);
   livox_node.getParam("enable_lidar_bag", lidar_bag);
   livox_node.getParam("enable_imu_bag", imu_bag);
-  livox_node.getParam("path_for_time_stamp", path_for_time_stamp);
-
-  const char *shared_file_name = path_for_time_stamp.c_str();
-  int fd = open(shared_file_name, O_CREAT | O_RDWR | O_TRUNC, 0666);
-  if (fd == -1) {
-    std::cout <<path_for_time_stamp << "\n";
-    ERR_EXIT("open");
-  } else {
-    printf("open code: %d\n", fd);
-  }
-  lseek(fd, sizeof(time_stamp) * 1, SEEK_SET);
-  write(fd, "", 1);
-  pointt = (time_stamp *)mmap(NULL, sizeof(time_stamp) * 1,
-                              PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-
   if (publish_freq > 100.0) {
     publish_freq = 100.0;
   } else if (publish_freq < 0.1) {
@@ -138,7 +112,6 @@ int main(int argc, char **argv) {
 
     LdsLidar *read_lidar = LdsLidar::GetInstance(1000 / publish_freq);
     lddc->RegisterLds(static_cast<Lds *>(read_lidar));
-    // 里面有回调函数
     ret = read_lidar->InitLdsLidar(bd_code_list, user_config_path.c_str());
     if (!ret) {
       ROS_INFO("Init lds lidar success!");
@@ -199,6 +172,6 @@ int main(int argc, char **argv) {
   while (ros::ok()) {
     lddc->DistributeLidarData();
   }
-  munmap(pointt, sizeof(time_stamp) * 5);
+
   return 0;
 }

@@ -128,7 +128,7 @@ int32_t SdkProtocol::CheckPacket(const uint8_t *buf) {
   if (crc32_.crc32_calc(buf, sdk_packet->length - kSdkPacketCrcSize) == crc) {
     return 0;
   } else {
-    return 0;
+    return -1;
   }
 }
 }  // namespace livox_ros

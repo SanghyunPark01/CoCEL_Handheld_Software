@@ -29,11 +29,7 @@
 #include <string.h>
 #include <time.h>
 #include <chrono>
-struct time_stamp {
-  int64_t high;
-  int64_t low;
-};
-extern struct time_stamp *pointt;
+
 namespace livox_ros {
 
 /** Common function --------------------------------------------------------- */
@@ -47,30 +43,6 @@ bool IsFilePathValid(const char *path_str) {
   }
 }
 
-/** Replace nonstardard function "timegm" with mktime.
- *  For a portable version of timegm, set the TZ environment variable to UTC,
- *  call mktime and restore the value of TZ.
- *  "localtime" and "timegm" are nonstandard GNU extensions that are also present
- *  on the BSDs. Avoid their use!!!
- */
-time_t replace_timegm(struct tm *tm) {
-  time_t ret;
-  char *tz;
-
-  tz = getenv("TZ");
-  setenv("TZ", "", 1);
-  tzset();
-  ret = mktime(tm);
-
-  if (tz)
-    setenv("TZ", tz, 1);
-  else
-    unsetenv("TZ");
-  tzset();
-
-  return ret;
-}
-
 uint64_t RawLdsStampToNs(LdsStamp &timestamp, uint8_t timestamp_type) {
   if (timestamp_type == kTimestampTypePps) {
     return timestamp.stamp;
@@ -79,12 +51,13 @@ uint64_t RawLdsStampToNs(LdsStamp &timestamp, uint8_t timestamp_type) {
   } else if (timestamp_type == kTimestampTypePtp) {
     return timestamp.stamp;
   } else if (timestamp_type == kTimestampTypePpsGps) {
+    // printf("%d,%d,%d,%d,%d,%d,%d,%d\n",timestamp.stamp_bytes[0],timestamp.stamp_bytes[1],timestamp.stamp_bytes[2],timestamp.stamp_bytes[3],timestamp.stamp_bytes[4],timestamp.stamp_bytes[5],timestamp.stamp_bytes[6],timestamp.stamp_bytes[7]);
     struct tm time_utc;
     time_utc.tm_isdst = 0;
     time_utc.tm_year = timestamp.stamp_bytes[0] + 100;  // map 2000 to 1990
-    time_utc.tm_mon = timestamp.stamp_bytes[1] - 1;     // map 1~12 to 0~11
-    time_utc.tm_mday = timestamp.stamp_bytes[2];
-    time_utc.tm_hour = timestamp.stamp_bytes[3];
+    time_utc.tm_mon = 0; //timestamp.stamp_bytes[1] - 1;     // map 1~12 to 0~11
+    time_utc.tm_mday = 1; //timestamp.stamp_bytes[2];
+    time_utc.tm_hour = 0; //timestamp.stamp_bytes[3];
     time_utc.tm_min = 0;
     time_utc.tm_sec = 0;
 
@@ -99,10 +72,6 @@ uint64_t RawLdsStampToNs(LdsStamp &timestamp, uint8_t timestamp_type) {
     return 0;
   }
 }
-#include <chrono>
-#include <fcntl.h>
-
-#include <sys/mman.h>
 
 uint64_t GetStoragePacketTimestamp(StoragePacket *packet, uint8_t data_src) {
   LivoxEthPacket *raw_packet =
@@ -111,10 +80,6 @@ uint64_t GetStoragePacketTimestamp(StoragePacket *packet, uint8_t data_src) {
   memcpy(timestamp.stamp_bytes, raw_packet->timestamp, sizeof(timestamp));
 
   if (raw_packet->timestamp_type == kTimestampTypePps) {
-    // double a1 = timestamp.stamp / 1e9;
-    // double a2 = packet->time_rcv / 1e9;
-
-    // printf("kTimestampTypePps: %.6f\n", a1 + a2);
     if (data_src != kSourceLvxFile) {
       return (timestamp.stamp + packet->time_rcv);
     } else {
@@ -125,29 +90,19 @@ uint64_t GetStoragePacketTimestamp(StoragePacket *packet, uint8_t data_src) {
   } else if (raw_packet->timestamp_type == kTimestampTypePtp) {
     return timestamp.stamp;
   } else if (raw_packet->timestamp_type == kTimestampTypePpsGps) {
+
     struct tm time_utc;
-    //
     time_utc.tm_isdst = 0;
     time_utc.tm_year = raw_packet->timestamp[0] + 100;  // map 2000 to 1990
-    // time_utc.tm_mon = raw_packet->timestamp[1] - 1;     // map 1~12 to 0~11
-    // time_utc.tm_mday = raw_packet->timestamp[2];
-    // time_utc.tm_hour = raw_packet->timestamp[3];
-    // time_utc.tm_year = 2000; // map 2000 to 1990
-    time_utc.tm_mon = 0;  // map 1~12 to 0~11
-    time_utc.tm_mday =1;
-    time_utc.tm_hour = 0;
+    time_utc.tm_mon = raw_packet->timestamp[1] - 1;     // map 1~12 to 0~11
+    time_utc.tm_mday = raw_packet->timestamp[2];
+    time_utc.tm_hour = raw_packet->timestamp[3];
     time_utc.tm_min = 0;
-    time_utc.tm_sec = 0;
-
+    time_utc.tm_sec = 0; // 100,4,23,0
     // uint64_t time_epoch = mktime(&time_utc);
     uint64_t time_epoch = timegm(&time_utc);  // no timezone
     time_epoch = time_epoch * 1000000 + timestamp.stamp_word.high;  // to us
-    time_epoch = time_epoch * 1000;
-    double a3 = time_epoch / 1e9; // to ns
-    // pointt->high = timestamp.stamp;
-
-    // pointt->low = time_epoch;
-    // printf("kTimestampTypePpsGps: %.9f\n", a3);
+    time_epoch = time_epoch * 1000;                                 // to ns
     return time_epoch;
   } else {
     printf("Timestamp type[%d] invalid.\n", raw_packet->timestamp_type);
@@ -663,20 +618,18 @@ uint8_t Lds::GetDeviceType(uint8_t handle) {
   }
 }
 
-void Lds::UpdateLidarInfoByEthPacket(LidarDevice *p_lidar,
+void Lds::UpdateLidarInfoByEthPacket(LidarDevice *p_lidar, \
     LivoxEthPacket* eth_packet) {
   if (p_lidar->raw_data_type != eth_packet->data_type) {
     p_lidar->raw_data_type = eth_packet->data_type;
-    p_lidar->packet_interval = GetPacketInterval(p_lidar->info.type,
+    p_lidar->packet_interval = GetPacketInterval(p_lidar->info.type, \
         eth_packet->data_type);
-    p_lidar->timestamp_type = eth_packet->timestamp_type;
     p_lidar->packet_interval_max = p_lidar->packet_interval * 1.8f;
-    p_lidar->onetime_publish_packets =
-        GetPacketNumPerSec(p_lidar->info.type,
+    p_lidar->onetime_publish_packets = \
+        GetPacketNumPerSec(p_lidar->info.type, \
         p_lidar->raw_data_type) * buffer_time_ms_ / 1000;
-    printf("Lidar[%d][%s] DataType[%d] timestamp_type[%d] PacketInterval[%d] "
-        "PublishPackets[%d]\n", p_lidar->handle, p_lidar->info.broadcast_code,
-        p_lidar->raw_data_type, p_lidar->timestamp_type,
+    printf("Lidar[%d][%s] DataType[%d] PacketInterval[%d] PublishPackets[%d]\n",
+        p_lidar->handle, p_lidar->info.broadcast_code, p_lidar->raw_data_type,
         p_lidar->packet_interval, p_lidar->onetime_publish_packets);
   }
 }

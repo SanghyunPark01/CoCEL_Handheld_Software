@@ -199,7 +199,7 @@ int32_t CommProtocol::FsmGetPacketData(CommPacket *o_pack) {
       break;
     }
 
-    if (protocol_->CheckPacket(GetCacheReadPos())) {
+    if (!protocol_->CheckPacket(GetCacheReadPos())) {
       cache_.rd_idx += protocol_->GetPreambleLen();
       FsmParserStateTransfer(kSearchPacketPreamble);
       printf("Check packet error\n");

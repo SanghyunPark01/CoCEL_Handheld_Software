@@ -10,7 +10,7 @@
 	<arg name="rviz_enable" default="false"/>
 	<arg name="rosbag_enable" default="false"/>
 	<arg name="cmdline_arg" default="$(arg bd_list)"/>
-	<arg name="msg_frame_id" default="livox_frame"/>
+	<arg name="msg_frame_id" default="camera_init"/>
 	<arg name="lidar_bag" default="true"/>
 	<arg name="imu_bag" default="true"/>
 
@@ -25,7 +25,7 @@
 	<param name="frame_id" type="string" value="$(arg msg_frame_id)"/>
 	<param name="enable_lidar_bag" type="bool" value="$(arg lidar_bag)"/>
 	<param name="enable_imu_bag" type="bool" value="$(arg imu_bag)"/>
-
+	<node pkg="loam_horizon" type="livox_repub" name="livox_repub" output="screen" />
 	<node name="livox_lidar_publisher" pkg="livox_ros_driver"
 	      type="livox_ros_driver_node" required="true"
 	      output="screen" args="$(arg cmdline_arg)"/>
