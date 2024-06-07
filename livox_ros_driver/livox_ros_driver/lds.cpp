@@ -55,9 +55,9 @@ uint64_t RawLdsStampToNs(LdsStamp &timestamp, uint8_t timestamp_type) {
     struct tm time_utc;
     time_utc.tm_isdst = 0;
     time_utc.tm_year = timestamp.stamp_bytes[0] + 100;  // map 2000 to 1990
-    time_utc.tm_mon = 0; //timestamp.stamp_bytes[1] - 1;     // map 1~12 to 0~11
-    time_utc.tm_mday = 1; //timestamp.stamp_bytes[2];
-    time_utc.tm_hour = 0; //timestamp.stamp_bytes[3];
+    time_utc.tm_mon = timestamp.stamp_bytes[1] - 1;     // map 1~12 to 0~11
+    time_utc.tm_mday = timestamp.stamp_bytes[2];
+    time_utc.tm_hour = timestamp.stamp_bytes[3];
     time_utc.tm_min = 0;
     time_utc.tm_sec = 0;
 
@@ -94,9 +94,9 @@ uint64_t GetStoragePacketTimestamp(StoragePacket *packet, uint8_t data_src) {
     struct tm time_utc;
     time_utc.tm_isdst = 0;
     time_utc.tm_year = raw_packet->timestamp[0] + 100;  // map 2000 to 1990
-    time_utc.tm_mon = raw_packet->timestamp[1] - 1;     // map 1~12 to 0~11
-    time_utc.tm_mday = raw_packet->timestamp[2];
-    time_utc.tm_hour = raw_packet->timestamp[3];
+    time_utc.tm_mon = 0; // raw_packet->timestamp[1] - 1;     // map 1~12 to 0~11
+    time_utc.tm_mday = 1; // raw_packet->timestamp[2];
+    time_utc.tm_hour = 0; // raw_packet->timestamp[3];
     time_utc.tm_min = 0;
     time_utc.tm_sec = 0; // 100,4,23,0
     // uint64_t time_epoch = mktime(&time_utc);
