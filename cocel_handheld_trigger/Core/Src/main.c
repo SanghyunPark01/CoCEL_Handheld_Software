@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -63,32 +63,76 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint16_t global_time;
-uint16_t tx_len;
+
 char tx_buffer2[] = "Message Receive\n";
-char snum[7];
-char tx_remain[] = ".00,A,2237.496474,N,11356.089515,E,0.0,225.5,310518,2.3,W,A*23\n";
+
+unsigned char result;
+int i;
+int checkNum(const char *gprmcContext)
+{
+    if (gprmcContext == NULL)
+    {
+        return -1;
+	}
+
+    result = gprmcContext[1];
+
+    for (i = 2; gprmcContext[i] != '*' && gprmcContext[i] != '\0'; i++)
+    {
+        result ^= gprmcContext[i];
+    }
+
+    if (gprmcContext[i] != '*')
+    {
+        return -1;
+    }
+
+    return result;
+}
+
+char tmp[100]="";
+int ss=0;
+int mm=0;
+int hh=0;
+char gprmcStr[7]="$GPRMC,";
+char data[100]="";
+int check_num=0;
+char checkNumChar[2] = "";
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) // Timer Interrupt
 {
-	global_time++;
-	sprintf(snum, "%06d", global_time);
-	snum[6]=0;
+	if(ss<59)
+	{
+		ss++;
+	}
+	else
+	{
+		ss=0;
+		if(mm<59)
+		{
+			mm++;
+		}
+		else
+		{
+			mm=0;
+			if(hh<23)
+			{
+				hh++;
+			}
+			else
+			{
+				hh=0;
+			}
+		}
+	}
+	sprintf(data, "%s%02d%02d%02d%s", gprmcStr, hh, mm, ss, ".00,A,2237.496474,N,11356.089515,E,0.0,225.5,230520,2.3,W,A*");
+	strcpy(tmp,data);
 
-	char tx_buffer[77] = "$GPRMC,";
-	strcat(tx_buffer, snum);
-	strcat(tx_buffer, tx_remain);
+	check_num = checkNum(tmp);
+	sprintf(checkNumChar, "%02X", check_num);
 
-	HAL_UART_Transmit(&huart2, tx_buffer, sizeof(tx_buffer)-1, 10);
+	HAL_UART_Transmit(&huart2, data, sizeof(data)-1, 10);
+	HAL_UART_Transmit(&huart2, checkNumChar, sizeof(checkNumChar)-1, 10);
 
-
-//	tx_len = sizeof("$GPRMC,")-1;
-//	HAL_UART_Transmit(&huart2,"$GPRMC,", tx_len, HAL_MAX_DELAY);
-//
-//	tx_len = sizeof(snum)-1;
-//	HAL_UART_Transmit(&huart2,snum, tx_len, HAL_MAX_DELAY);
-//
-//	tx_len = sizeof(".00,A,2237.496474,N,11356.089515,E,0.0,225.5,310518,2.3,W,A*23\n")-1;
-//	HAL_UART_Transmit(&huart2,".00,A,2237.496474,N,11356.089515,E,0.0,225.5,310518,2.3,W,A*23\n", tx_len, HAL_MAX_DELAY);
 
 }
 
@@ -137,7 +181,7 @@ int main(void)
   TIM2->CCR1 = 999; // duty 50%
 
   /* @@@@@@@@@@@@@@@@@
-  	TIMER 3 - 10Hz
+  	TIMER 3 - 1Hz
   @@@@@@@@@@@@@@@@@ */
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
   HAL_TIMEx_PWMN_Start(&htim3, TIM_CHANNEL_1);
@@ -276,7 +320,7 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 639;
+  htim3.Init.Prescaler = 6399;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 9999;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;

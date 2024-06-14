@@ -16,7 +16,7 @@ Synchronize LiDAR & Camera Frame.
 ## Hard ware  
 - [LiDAR: Mid-70](https://www.livoxtech.com/mid-70)
 - [Camera: FLIR Machine vision camera](https://www.flir.com/products/blackfly-s-usb3/?vertical=machine%20vision&segment=iis)
-- IMU  
+- IMU
 
 ========================  
 
