@@ -43,7 +43,9 @@
 /* ==============================
    Modified for CoCEL Handheld
 ============================== */
-ros::Time curr_time;
+double skip_frame_for_initialize = 10; // 10hz -> 1s for initialize
+double init_ros_time = 0;
+double init_lidar_time = 0;
 /* ==============================
    Modified for CoCEL Handheld
 ============================== */
@@ -514,6 +516,19 @@ namespace livox_ros
         packet_offset_time = 0;
         /** convert to ros time stamp */
         // livox_msg.header.stamp = ros::Time(timestamp / 1000000000.0);
+
+        /* ============================== 
+          Modified for CoCEL Handheld
+        ============================== */
+        if(skip_frame_for_initialize > 0)
+        {
+          skip_frame_for_initialize--;
+          init_ros_time = ros::Time::now().toSec();
+          init_lidar_time = timestamp;
+        }
+        /* ==============================
+          Modified for CoCEL Handheld
+        ============================== */
       }
       else
       {
@@ -564,7 +579,8 @@ namespace livox_ros
     /* ==============================
       Modified for CoCEL Handheld
     ============================== */
-    livox_msg.header.stamp = ros::Time(ros::Time::now().toSec() - 0.005);
+    livox_msg.header.stamp = ros::Time(init_ros_time + ((double)livox_msg.timebase - init_lidar_time)/1e9);
+    // livox_msg.header.stamp = ros::Time(ros::Time::now().toSec() - 0.005);
     /* ==============================
       Modified for CoCEL Handheld
     ============================== */
