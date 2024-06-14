@@ -580,7 +580,6 @@ namespace livox_ros
       Modified for CoCEL Handheld
     ============================== */
     livox_msg.header.stamp = ros::Time(init_ros_time + ((double)livox_msg.timebase - init_lidar_time)/1e9);
-    // livox_msg.header.stamp = ros::Time(ros::Time::now().toSec() - 0.005);
     /* ==============================
       Modified for CoCEL Handheld
     ============================== */
