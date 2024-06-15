@@ -43,7 +43,7 @@
 /* ==============================
    Modified for CoCEL Handheld
 ============================== */
-double skip_frame_for_initialize = 10; // 10hz -> 1s for initialize
+double skip_frame_for_initialize = 50; // 10hz -> 5s for initialize
 double init_ros_time = 0;
 double init_lidar_time = 0;
 /* ==============================
@@ -525,6 +525,9 @@ namespace livox_ros
           skip_frame_for_initialize--;
           init_ros_time = ros::Time::now().toSec();
           init_lidar_time = timestamp;
+          ROS_INFO("========================");
+          ROS_INFO("Init time stamp = %lf", init_ros_time);
+          ROS_INFO("========================");
         }
         /* ==============================
           Modified for CoCEL Handheld
@@ -580,6 +583,7 @@ namespace livox_ros
       Modified for CoCEL Handheld
     ============================== */
     livox_msg.header.stamp = ros::Time(init_ros_time + ((double)livox_msg.timebase - init_lidar_time)/1e9);
+    // livox_msg.header.stamp = ros::Time(ros::Time::now().toSec());
     /* ==============================
       Modified for CoCEL Handheld
     ============================== */

@@ -586,14 +586,23 @@ private:
 
             // Set other values
             wfov_image->header.frame_id = frame_id_;
-
             wfov_image->gain = gain_;
             wfov_image->white_balance_blue = wb_blue_;
             wfov_image->white_balance_red = wb_red_;
 
             // wfov_image->temperature = spinnaker_.getCameraTemperature();
 
-            ros::Time time = ros::Time::now() + ros::Duration(config_.time_offset);
+            /* ============================
+              Modified for CoCEL Handheld
+            ============================ */
+            ros::Time curr_time = wfov_image->image.header.stamp;
+            ros::Time time = curr_time + ros::Duration(config_.time_offset);
+
+            // ros::Time time = ros::Time::now() + ros::Duration(config_.time_offset);
+            /* ============================
+              Modified for CoCEL Handheld
+            ============================ */
+            
             wfov_image->header.stamp = time;
             wfov_image->image.header.stamp = time;
 

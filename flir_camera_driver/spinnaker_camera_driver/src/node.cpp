@@ -44,6 +44,12 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <string>
 
+#include <signal.h>
+
+void mySigintHandler(int sig){
+    ros::shutdown();
+}
+
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "spinnaker_camera_node");
@@ -54,6 +60,9 @@ int main(int argc, char** argv)
   nodelet::V_string nargv;
   std::string nodelet_name = ros::this_node::getName();
   nodelet.load(nodelet_name, "spinnaker_camera_driver/SpinnakerCameraNodelet", remap, nargv);
+
+  signal(SIGINT, mySigintHandler);
+  ros::waitForShutdown();
 
   ros::spin();
 

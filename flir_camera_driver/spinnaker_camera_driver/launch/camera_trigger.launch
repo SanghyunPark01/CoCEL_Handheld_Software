@@ -35,11 +35,12 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
       camera itself. Use the parameter 'control_frame_rate' to enable manual frame 
       rate control, and 'frame_rate' to set the frame rate value. -->
   <arg name="control_frame_rate"        default="False" />
-  <arg name="frame_rate"                default="30" />
+  <arg name="frame_rate"                default="50" />
 
   <arg name="enable_trigger"            default="On" />
   <arg name="trigger_activation_mode"   default="RisingEdge" />
   <arg name="trigger_source"            default="Line2" />
+  <arg name="trigger_overlap"           default="ReadOut" />
 
 
 
@@ -81,6 +82,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
       <param name="enable_trigger"                  value="$(arg enable_trigger)" />
       <param name="trigger_activation_mode"         value="$(arg trigger_activation_mode)" />
       <param name="trigger_source"                  value="$(arg trigger_source)" />
+      <param name="trigger_overlap_mode"            value="$(arg trigger_overlap)" />
       <!-- Frame rate -->
       <param name="acquisition_frame_rate_enable"   value="$(arg control_frame_rate)" />
       <param name="acquisition_frame_rate"          value="$(arg frame_rate)" />

@@ -49,6 +49,17 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <ros/ros.h>
 
+/* ============================
+  Modified for CoCEL Handheld
+============================ */
+double init_ros_time = 0;
+double init_cam_time = 0;
+double prev_cam_time = -1;
+int skip_frame_for_initialize = 10;
+/* ============================
+  Modified for CoCEL Handheld
+============================ */
+
 namespace spinnaker_camera_driver
 {
 SpinnakerCamera::SpinnakerCamera()
@@ -357,9 +368,35 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
         image_ptr = pCam_->GetNextImage(timeout_);
       }
 
+      /* ============================
+        Modified for CoCEL Handheld
+      ============================ */
+      
       // Set Image Time Stamp
-      image->header.stamp.sec = image_ptr->GetTimeStamp() * 1e-9;
-      image->header.stamp.nsec = image_ptr->GetTimeStamp();
+      // image->header.stamp.sec = image_ptr->GetTimeStamp() * 1e-9;
+      // image->header.stamp.nsec = image_ptr->GetTimeStamp();
+
+      double curr_cam_time = image_ptr->GetTimeStamp();
+      if(curr_cam_time <= prev_cam_time)
+      {
+        ROS_WARN("[SpinnakerCamera::grabImage] Timestamp is wrong...");
+
+      }
+      if(skip_frame_for_initialize)
+      {
+        skip_frame_for_initialize--;
+        init_ros_time = ros::Time::now().toSec();
+        init_cam_time = curr_cam_time;
+        ROS_INFO("========================");
+        ROS_INFO("Init time stamp = %lf", init_ros_time);
+        ROS_INFO("========================");
+      }
+      image->header.stamp = ros::Time(init_ros_time + (curr_cam_time - init_cam_time)/1e9);
+      prev_cam_time = curr_cam_time;
+
+      /* ============================
+        Modified for CoCEL Handheld
+      ============================ */
 
       // Check the bits per pixel.
       size_t bitsPerPixel = image_ptr->GetBitsPerPixel();
@@ -451,6 +488,7 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
 
       // ROS_INFO_ONCE("\033[93m wxh: (%d, %d), stride: %d \n", width, height, stride);
       fillImage(*image, imageEncoding, height, width, stride, image_ptr->GetData());
+
       image->header.frame_id = frame_id;
     }
     catch (const Spinnaker::Exception& e)
